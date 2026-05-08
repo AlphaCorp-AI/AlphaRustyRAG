@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an idea or improvement for RustyRAG
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature. Describe the **problem** you're trying to solve, not just the solution — context helps us evaluate trade-offs.
+
+        Before submitting, please:
+        - Search [existing issues](../../issues) and [Discussions](../../discussions) to avoid duplicates.
+        - For non-trivial changes, expect to discuss design here before any PR work begins.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are you trying to solve? What pain or limitation does the current behavior cause?
+      placeholder: When I try to X, RustyRAG forces me to Y, which makes Z difficult because…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work? Include API shape, CLI flags, config keys, or behavioral changes where relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider? Why are they worse than your proposal? Are there existing workarounds?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Links to related issues, prior art in other projects, benchmarks, mock-ups, or anything else that supports the proposal.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Optional — would you be willing to help implement this?
+      options:
+        - label: I'd like to work on this myself.
+          required: false
+        - label: I'd be willing to help review or test a PR.
+          required: false
