@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and discussion
+    url: https://github.com/AlphaCorp-AI/RustyRAG/discussions
+    about: Have a question, want to share an idea, or need help getting started? Open a Discussion instead of an issue.
+  - name: Security vulnerabilities
+    url: https://github.com/AlphaCorp-AI/RustyRAG/blob/main/SECURITY.md
+    about: Please do not report security issues publicly. See SECURITY.md for private disclosure instructions.

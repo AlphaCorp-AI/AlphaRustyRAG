@@ -1,0 +1,108 @@
+name: Bug report
+description: Report a reproducible bug in RustyRAG
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out the sections below so we can reproduce and fix the issue quickly.
+
+        Before submitting, please:
+        - Search [existing issues](../../issues) to avoid duplicates.
+        - Reproduce on the latest `main` if possible.
+        - Do **not** report security vulnerabilities here — see [SECURITY.md](../../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I do X, Y happens instead of Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps that reliably reproduce the issue. Include configuration, sample requests, or input documents where relevant.
+      placeholder: |
+        1. Run `cargo run --release`
+        2. POST to `/api/...` with payload `{ ... }`
+        3. Observe the response
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include error messages or unexpected output.
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: e.g. macOS 14.5, Ubuntu 22.04, Windows 11
+      placeholder: macOS 14.5
+    validations:
+      required: true
+
+  - type: input
+    id: rust-version
+    attributes:
+      label: Rust version
+      description: Output of `rustc --version`
+      placeholder: rustc 1.78.0 (9b00956e5 2024-04-29)
+    validations:
+      required: true
+
+  - type: input
+    id: crate-version
+    attributes:
+      label: RustyRAG version
+      description: Release tag, commit SHA, or version from `Cargo.toml`
+      placeholder: v0.3.1 or commit abc1234
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Additional environment details
+      description: Docker / Milvus / GPU services versions, LLM provider, embedding model, reranker, etc.
+      placeholder: |
+        - Milvus: 2.4.x (docker compose)
+        - LLM provider: Cerebras / Groq / ...
+        - Embedding model: ...
+        - Reranker: Jina v2
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant log output. Set `RUST_LOG=debug` for more detail. Please use a code block or attach a file.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that might help — screenshots, related issues, recent changes, workarounds you've tried.
+    validations:
+      required: false
