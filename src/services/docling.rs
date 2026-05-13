@@ -112,8 +112,12 @@ impl DoclingClient {
 
         let document = &body["document"];
         let json_content = &document["json_content"];
-        // `md_content` is searched across known Docling response shapes; it is
-        // only used for fallback when `json_content` is empty.
+        // `md_content` is searched across known Docling response shapes. It
+        // is used for two things: (1) the legacy fallback when `json_content`
+        // is empty, (2) source of base64 image data (Docling does NOT embed
+        // image bytes inside `json_content.pictures[*].image` — that field is
+        // always null even with `image_export_mode=embedded`; the bytes only
+        // appear in markdown as `![alt](data:image/…;base64,…)`).
         let md_content = extract_markdown_from_response(&body).unwrap_or_default();
 
         // Group text + tables by page from the structured JSON.
@@ -121,30 +125,39 @@ impl DoclingClient {
         collect_texts_by_page(json_content, &mut by_page);
         collect_tables_by_page(json_content, &mut by_page);
 
-        // Describe pictures via the vision model and attach them to their page.
-        if let Some(pictures) = json_content["pictures"].as_array() {
-            for pic in pictures {
-                let page = page_no_of(pic).unwrap_or(1);
-                let uri = pic["image"]["uri"]
-                    .as_str()
-                    .or_else(|| pic["image"].as_str())
-                    .or_else(|| pic["uri"].as_str());
-                let Some(uri) = uri else { continue };
-                if !uri.starts_with("data:image/") {
-                    continue;
+        // Pictures: image data lives only in the markdown, page numbers only
+        // in the JSON. Both lists are emitted in reading order by Docling, so
+        // the i-th base64 image in the markdown corresponds to the i-th
+        // entry in `json_content.pictures`. Pair them by index.
+        let picture_pages: Vec<u32> = json_content["pictures"]
+            .as_array()
+            .map(|arr| {
+                arr.iter()
+                    .map(|p| page_no_of(p).unwrap_or(1))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let image_re = Regex::new(r"!\[[^\]]*\]\((data:image/[^;]+;base64,[^)]+)\)")
+            .expect("Invalid regex");
+        let md_image_uris: Vec<String> = image_re
+            .captures_iter(&md_content)
+            .filter_map(|c| c.get(1).map(|m| m.as_str().to_string()))
+            .collect();
+
+        for (i, uri) in md_image_uris.iter().enumerate() {
+            let page = picture_pages.get(i).copied().unwrap_or(1);
+            let desc = match self.describe_image(uri).await {
+                Ok(d) => d,
+                Err(e) => {
+                    tracing::warn!("Failed to describe image: {e}");
+                    "description unavailable".to_string()
                 }
-                let desc = match self.describe_image(uri).await {
-                    Ok(d) => d,
-                    Err(e) => {
-                        tracing::warn!("Failed to describe image: {e}");
-                        "description unavailable".to_string()
-                    }
-                };
-                by_page
-                    .entry(page)
-                    .or_default()
-                    .push(format!("[Image: {desc}]"));
-            }
+            };
+            by_page
+                .entry(page)
+                .or_default()
+                .push(format!("[Image: {desc}]"));
         }
 
         let mut pages: Vec<PageText> = by_page
@@ -156,8 +169,9 @@ impl DoclingClient {
             .collect();
 
         // Fallback when json_content is empty (older Docling versions or
-        // non-supported corner cases): fall back to the legacy markdown path
-        // so we never lose data, even if page metadata is unknown.
+        // unsupported corner cases): fall back to the legacy markdown path
+        // with inline image descriptions so we never lose data — page
+        // metadata is just unknown.
         if pages.is_empty() {
             let md = self.replace_images_with_descriptions(&md_content).await;
             let text = md.trim().to_string();
