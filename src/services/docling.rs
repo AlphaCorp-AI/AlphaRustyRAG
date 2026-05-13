@@ -145,8 +145,22 @@ impl DoclingClient {
             .filter_map(|c| c.get(1).map(|m| m.as_str().to_string()))
             .collect();
 
-        for (i, uri) in md_image_uris.iter().enumerate() {
-            let page = picture_pages.get(i).copied().unwrap_or(1);
+        // Process only paired images. If counts differ (rare: e.g. Docling
+        // dropping a decorative icon from one side), we skip the unpaired
+        // ones rather than fabricating a page number. A warning is logged so
+        // the operator can investigate.
+        let paired = md_image_uris.len().min(picture_pages.len());
+        if md_image_uris.len() != picture_pages.len() {
+            tracing::warn!(
+                "Image count mismatch for '{filename}': md_images={}, json_pictures={} — describing first {} paired item(s) and skipping the rest",
+                md_image_uris.len(),
+                picture_pages.len(),
+                paired,
+            );
+        }
+        for i in 0..paired {
+            let uri = &md_image_uris[i];
+            let page = picture_pages[i];
             let desc = match self.describe_image(uri).await {
                 Ok(d) => d,
                 Err(e) => {
